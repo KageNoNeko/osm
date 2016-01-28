@@ -1,27 +1,33 @@
 {
-  "name": "vendor/package",
-  "description": "",
-  "keywords": [],
-  "homepage": "",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "",
-      "email": ""
-    }
-  ],
-  "require": {
-    "php": ">=5.4.0",
-    "illuminate/config": "~5.0",
-    "illuminate/support": "~5.0"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "~4.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "Vendor\\Package\\": "src/"
-    }
-  },
-  "minimum-stability": "dev"
+    "name": "kage-no-neko/osm",
+    "description": "OpenStreetMap API Integration",
+    "keywords": [
+        "osm",
+        "open street map",
+        "api"
+    ],
+    "homepage": "https://github.com/KageNoNeko/osm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sergey Yakovlev",
+            "email": "shadowspawnshadow@gmail.com",
+            "homepage": "https://github.com/KageNoNeko",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "~6.0",
+        "laravel/framework": "5.1.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "KageNoNeko\\OSM\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
 }
