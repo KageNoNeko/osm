@@ -3,6 +3,7 @@
 namespace KageNoNeko\OSM\Query;
 
 use InvalidArgumentException;
+use KageNoNeko\OSM\BoundingBox;
 use KageNoNeko\OSM\ConnectionInterface;
 use KageNoNeko\OSM\Query\Grammars\OverpassGrammar;
 //use KageNoNeko\OSM\Query\Processors\Processor;
@@ -11,14 +12,14 @@ class OverpassBuilder
 {
 
     /**
-     * The database connection instance.
+     * The OSM API connection instance.
      *
      * @var \KageNoNeko\OSM\ConnectionInterface
      */
     protected $connection;
 
     /**
-     * The database query grammar instance.
+     * The OSM API query grammar instance.
      *
      * @var \KageNoNeko\OSM\Query\Grammars\OverpassGrammar
      */
@@ -32,7 +33,7 @@ class OverpassBuilder
     //protected $processor;
 
     /**
-     * The maximum number of records to return.
+     * The settings constraints for the query.
      *
      * @var array
      */
@@ -46,18 +47,18 @@ class OverpassBuilder
     protected $wheres = [];
 
     /**
-     * The orderings for the query.
+     * The out constraints for the query.
      *
      * @var array
      */
     protected $out = [
         'limit' => null,
         'order' => null,
-        'type' => null,
+        'verbosity' => null,
     ];
 
     /**
-     * All of the available elements to fetch.
+     * All of the available elements.
      *
      * @var array
      */
@@ -66,7 +67,7 @@ class OverpassBuilder
     ];
 
     /**
-     * All of the available elements to fetch.
+     * All of the available orders.
      *
      * @var array
      */
@@ -75,7 +76,16 @@ class OverpassBuilder
     ];
 
     /**
-     * All of the available clause tag operators.
+     * All of the available verbosity types.
+     *
+     * @var array
+     */
+    protected $verbosity = [
+        'ids', 'skel', 'body', 'tags', 'meta',
+    ];
+
+    /**
+     * All of the available tag constraint operators.
      *
      * @var array
      */
@@ -83,22 +93,12 @@ class OverpassBuilder
         '=', '!=', '~', '!~', 'exists',
     ];
 
-    protected $lastElement;
-
     /**
-     * Create a new query builder instance.
+     * Last constraint's element.
      *
-     * @param  \KageNoNeko\OSM\ConnectionInterface        $connection
-     * @param  \KageNoNeko\OSM\Query\Grammars\OverpassGrammar     $grammar
-     * @param  \KageNoNeko\OSM\Query\Processors\Processor $processor
+     * @var string
      */
-    public function __construct(ConnectionInterface $connection,
-        OverpassGrammar $grammar/*,
-        Processor $processor*/) {
-        $this->grammar = $grammar;
-        //$this->processor = $processor;
-        $this->connection = $connection;
-    }
+    protected $lastElement;
 
     protected function assertValidElement($element) {
         if (!in_array($element = strtolower((string)$element), $this->elements)) {
@@ -108,39 +108,21 @@ class OverpassBuilder
         return $element;
     }
 
-    protected function assertElementWheres($element) {
-        if (is_null($element) && is_null($this->lastElement)) {
-            throw new InvalidArgumentException('Unknown element for constraint.');
-        }
-
-        return is_null($element) ? $this->lastElement : $this->toWheresIfNotIn($element);
-    }
-
-    /**
-     * Determine if the given operator and value combination is legal.
-     *
-     * @param  string $operator
-     * @param  mixed  $value
-     *
-     * @return void
-     */
     protected function assertValidTagOperator($operator) {
         if (!in_array($operator, $this->tagOperators)) {
             throw new InvalidArgumentException('Illegal operator.');
         }
     }
 
-    /**
-     * Determine if the given operator and value combination is legal.
-     *
-     * @param  string $operator
-     * @param  mixed  $value
-     *
-     * @return void
-     */
     protected function assertValidOrder($order) {
         if (!in_array($order, $this->orders)) {
             throw new InvalidArgumentException('Illegal order.');
+        }
+    }
+
+    protected function assertValidVerbosity($verbosity) {
+        if (!in_array($verbosity, $this->verbosity)) {
+            throw new InvalidArgumentException('Illegal verbosity.');
         }
     }
 
@@ -158,11 +140,46 @@ class OverpassBuilder
         return $element;
     }
 
+    protected function assertElementWheres($element) {
+        if (is_null($element) && is_null($this->lastElement)) {
+            throw new InvalidArgumentException('Unknown element for constraint.');
+        }
+
+        return is_null($element) ? $this->lastElement : $this->toWheresIfNotIn($element);
+    }
+
     protected function settingsOption($name, $value) {
         $this->settings[] = compact('name', 'value');
 
         return $this;
     }
+
+    /**
+     * Create a new query builder instance.
+     *
+     * @param  \KageNoNeko\OSM\ConnectionInterface        $connection
+     * @param  \KageNoNeko\OSM\Query\Grammars\OverpassGrammar     $grammar
+     * @param  \KageNoNeko\OSM\Query\Processors\Processor $processor
+     */
+    public function __construct(ConnectionInterface $connection,
+        OverpassGrammar $grammar/*,
+        Processor $processor*/) {
+        $this->grammar = $grammar;
+        //$this->processor = $processor;
+        $this->connection = $connection;
+    }
+
+    public function getConnection() {
+        return $this->connection;
+    }
+
+    public function getGrammar() {
+        return $this->grammar;
+    }
+
+    /*public function getProcessor() {
+        return $this->processor;
+    }*/
 
     public function getSettings() {
         return $this->settings;
@@ -192,8 +209,14 @@ class OverpassBuilder
         return $this->settingsOption('maxsize', (int)$value);
     }
 
-    public function bbox($south, $west, $north, $east) {
-        return $this->settingsOption('bbox', $this->getGrammar()->prepareBBox($south, $west, $north, $east, true));
+    public function bbox($bBoxOrSouth, $west = null, $north = null, $east = null) {
+        if (!$bBoxOrSouth instanceof BoundingBox) {
+            if (func_num_args() != 4) {
+                throw new \InvalidArgumentException("Method accepts either \\KageNoNeko\\OSM\\BoundingBox instance either for coordinates.");
+            }
+            $bBoxOrSouth = new BoundingBox($bBoxOrSouth, $west, $north, $east);
+        }
+        return $this->settingsOption('bbox', $bBoxOrSouth);
     }
 
     public function element($element) {
@@ -208,32 +231,31 @@ class OverpassBuilder
 
         $type = 'Id';
 
-        $this->wheres[ $element ][ $type ] = compact('value');
+        $this->wheres[$element][$type] = compact('value');
 
         return $this;
     }
 
-    public function whereInBBox($south, $west, $north, $east, $element = null) {
+    public function whereInBBox($bBoxOrSouth, $elementOrWest = null, $north = null, $east = null, $element = null) {
+
+        if (func_num_args() < 3) {
+            if (!$bBoxOrSouth instanceof BoundingBox || !(is_string($elementOrWest) || is_null($elementOrWest))) {
+                throw new \InvalidArgumentException("In shortcut method call first argument should be \\KageNoNeko\\OSM\\BoundingBox instance and second can be element name or should be omitted.");
+            }
+            $element = $elementOrWest;
+        } else {
+            $bBoxOrSouth = new BoundingBox($bBoxOrSouth, $elementOrWest, $north, $east);
+        }
+
         $element = $this->assertElementWheres($element);
 
         $type = 'BBox';
 
-        $this->wheres[ $element ][ $type ] = compact('south', 'west', 'north', 'east');
+        $this->wheres[$element][$type] = ['bbox' => $bBoxOrSouth];
 
         return $this;
     }
 
-    /**
-     * Add a basic where clause to the query.
-     *
-     * @param  string|array $tag
-     * @param  string       $operator
-     * @param  string       $value
-     *
-     * @return $this
-     *
-     * @throws \InvalidArgumentException
-     */
     public function whereTag($tag, $operator = null, $value = null, $element = null) {
         $element = $this->assertElementWheres($element);
 
@@ -263,7 +285,7 @@ class OverpassBuilder
 
         $type = 'Tag';
 
-        $this->wheres[ $element ][ $type ] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
 
         return $this;
     }
@@ -277,7 +299,7 @@ class OverpassBuilder
 
         $value = "^$";
 
-        $this->wheres[ $element ][ $type ] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
 
         return $this;
     }
@@ -291,19 +313,11 @@ class OverpassBuilder
 
         $value = null;
 
-        $this->wheres[ $element ][ $type ] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
 
         return $this;
     }
 
-    /**
-     * Add an "order by" clause to the query.
-     *
-     * @param  string $column
-     * @param  string $direction
-     *
-     * @return $this
-     */
     public function orderBy($order) {
         $this->assertValidOrder($order);
 
@@ -312,35 +326,14 @@ class OverpassBuilder
         return $this;
     }
 
-    /**
-     * Add an "order by" clause for a timestamp to the query.
-     *
-     * @param  string $column
-     *
-     * @return \KageNoNeko\OSM\Query\Builder|static
-     */
     public function orderById() {
         return $this->orderBy('asc');
     }
 
-    /**
-     * Add an "order by" clause for a timestamp to the query.
-     *
-     * @param  string $column
-     *
-     * @return \KageNoNeko\OSM\Query\Builder|static
-     */
     public function orderByQt() {
         return $this->orderBy('qt');
     }
 
-    /**
-     * Set the "limit" value of the query.
-     *
-     * @param  int $value
-     *
-     * @return $this
-     */
     public function limit($value) {
 
         if ($value > 0) {
@@ -350,96 +343,37 @@ class OverpassBuilder
         return $this;
     }
 
-    /**
-     * Alias to set the "limit" value of the query.
-     *
-     * @param  int $value
-     *
-     * @return \KageNoNeko\OSM\Query\Builder|static
-     */
     public function take($value) {
         return $this->limit($value);
     }
 
-    /**
-     * Get the SQL representation of the query.
-     *
-     * @return string
-     */
+    public function verbosity($verbosity) {
+        $this->assertValidVerbosity($verbosity);
+
+        $this->out['verbosity'] = $verbosity;
+
+        return $this;
+    }
+
     public function toQl() {
         return $this->grammar->compileQuery($this);
     }
 
-    /**
-     * Execute a query for a single record by ID.
-     *
-     * @param  int   $id
-     * @param  array $columns
-     *
-     * @return mixed|static
-     */
-    public function find($element, $id) {
-        return $this->whereId($id, $element)->first();
+    protected function runQuery() {
+        return $this->connection->runQuery($this->toQl());
     }
 
-    /**
-     * Execute the query and get the first result.
-     *
-     * @param  array $columns
-     *
-     * @return mixed|static
-     */
+    public function get() {
+        return /*$this->processor->processResults($this, */$this->runQuery()/*)*/;
+    }
+
     public function first() {
         $results = $this->take(1)->get();
 
         return count($results) > 0 ? reset($results) : null;
     }
 
-    /**
-     * Execute the query as a "select" statement.
-     *
-     * @param  array $columns
-     *
-     * @return array|static[]
-     */
-    public function get() {
-
-        return /*$this->processor->processResults($this, */$this->runQuery()/*)*/;
-    }
-
-    /**
-     * Run the query as a "select" statement against the connection.
-     *
-     * @return array
-     */
-    protected function runQuery() {
-        return $this->connection->runQuery($this->toQl());
-    }
-
-    /**
-     * Get the database connection instance.
-     *
-     * @return \KageNoNeko\OSM\ConnectionInterface
-     */
-    public function getConnection() {
-        return $this->connection;
-    }
-
-    /**
-     * Get the database query processor instance.
-     *
-     * @return \KageNoNeko\OSM\Query\Processors\Processor
-     */
-    /*public function getProcessor() {
-        return $this->processor;
-    }*/
-
-    /**
-     * Get the query grammar instance.
-     *
-     * @return \KageNoNeko\OSM\Query\Grammars\OverpassGrammar
-     */
-    public function getGrammar() {
-        return $this->grammar;
+    public function find($id, $element = null) {
+        return $this->whereId($id, $element)->first();
     }
 }
