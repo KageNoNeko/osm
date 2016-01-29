@@ -1,6 +1,6 @@
 <?php
 
-namespace KageNoNeko\OSM;
+namespace KageNoNeko\OSM\Illuminate;
 
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
 
