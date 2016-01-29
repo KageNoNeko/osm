@@ -59,7 +59,7 @@ class OverpassGrammar
     protected function concatenate($segments) {
         return implode(';', array_filter($segments, function ($value) {
             return (string)$value !== '';
-        }));
+        })) . ";";
     }
 
     protected function compileSettings(QueryBuilder $query) {
@@ -73,7 +73,7 @@ class OverpassGrammar
     }
 
     protected function compileSettingsOption($option) {
-        return "[{$option}:?]";
+        return "[{$option['name']}:{$option['value']}]";
     }
 
     protected function compileWheres(QueryBuilder $query) {
@@ -96,7 +96,7 @@ class OverpassGrammar
         }
 
         if (count($ql) > 1) {
-            return implode(';', $ql);
+            return "(" . implode(';', $ql) . ")";
         }
 
         return reset($ql);
@@ -117,7 +117,7 @@ class OverpassGrammar
         return "(" . intval($where['value']) . ")";
     }
 
-    protected function compileWhereInBBox(array $where) {
+    protected function compileWhereBBox(array $where) {
         return "({$this->prepareBBox($where['south'], $where['west'], $where['north'], $where['east'], true)})";
     }
 
@@ -134,7 +134,7 @@ class OverpassGrammar
     protected function compileOut(QueryBuilder $query) {
         $out = $query->getOut();
 
-        return implode(' ', array_filter($out, function ($value) {
+        return "out " . implode(' ', array_filter($out, function ($value) {
             return (string)$value !== '';
         }));
     }

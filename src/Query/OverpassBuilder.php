@@ -43,11 +43,7 @@ class OverpassBuilder
      *
      * @var array
      */
-    protected $wheres = [
-        'Id' => null,
-        'InBBox' => null,
-        'Tag' => null,
-    ];
+    protected $wheres = [];
 
     /**
      * The orderings for the query.
@@ -152,18 +148,18 @@ class OverpassBuilder
         $element = $this->assertValidElement($element);
 
         if (!array_key_exists($element, $this->wheres)) {
-            $this->wheres[ $element ] = [];
+            $this->wheres[ $element ] = [
+                'Id' => null,
+                'BBox' => null,
+                'Tag' => null,
+            ];
         }
 
         return $element;
     }
 
     protected function settingsOption($name, $value) {
-        if (!array_key_exists($name, $this->settings)) {
-            throw new InvalidArgumentException("Invalid settings option: {$name}.");
-        }
-
-        $this->settings[] = [$name, $value];
+        $this->settings[] = compact('name', 'value');
 
         return $this;
     }
