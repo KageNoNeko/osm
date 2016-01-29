@@ -18,17 +18,17 @@ class ConnectionFactory
      * Establish a PDO connection based on the configuration.
      *
      * @param  array  $config
-     * @param  string $name
+     * @param  string $driver
      *
      * @return \Illuminate\Database\Connection
      */
-    public function make($name, array $config = []) {
+    public function make($driver, array $config = []) {
 
-        if (method_exists($this, $method = "make" . Str::studly($name) ."Connection")) {
+        if (method_exists($this, $method = "make" . Str::studly($driver) ."Connection")) {
             return $this->$method($config);
         }
 
-        throw new InvalidArgumentException("Unsupported connection [$name]");
+        throw new InvalidArgumentException("Unsupported connection [$driver]");
     }
 
     protected function makeOverpassConnection(array $config = []) {

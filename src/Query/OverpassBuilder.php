@@ -5,7 +5,7 @@ namespace KageNoNeko\OSM\Query;
 use InvalidArgumentException;
 use KageNoNeko\OSM\ConnectionInterface;
 use KageNoNeko\OSM\Query\Grammars\OverpassGrammar;
-use KageNoNeko\OSM\Query\Processors\Processor;
+//use KageNoNeko\OSM\Query\Processors\Processor;
 
 class OverpassBuilder
 {
@@ -29,7 +29,7 @@ class OverpassBuilder
      *
      * @var \KageNoNeko\OSM\Query\Processors\Processor
      */
-    protected $processor;
+    //protected $processor;
 
     /**
      * The maximum number of records to return.
@@ -97,10 +97,10 @@ class OverpassBuilder
      * @param  \KageNoNeko\OSM\Query\Processors\Processor $processor
      */
     public function __construct(ConnectionInterface $connection,
-        OverpassGrammar $grammar,
-        Processor $processor) {
+        OverpassGrammar $grammar/*,
+        Processor $processor*/) {
         $this->grammar = $grammar;
-        $this->processor = $processor;
+        //$this->processor = $processor;
         $this->connection = $connection;
     }
 
@@ -408,7 +408,7 @@ class OverpassBuilder
      */
     public function get() {
 
-        return $this->processor->processResults($this, $this->runQuery());
+        return /*$this->processor->processResults($this, */$this->runQuery()/*)*/;
     }
 
     /**
@@ -417,7 +417,7 @@ class OverpassBuilder
      * @return array
      */
     protected function runQuery() {
-        return $this->connection->select($this->toQl());
+        return $this->connection->runQuery($this->toQl());
     }
 
     /**
@@ -434,9 +434,9 @@ class OverpassBuilder
      *
      * @return \KageNoNeko\OSM\Query\Processors\Processor
      */
-    public function getProcessor() {
+    /*public function getProcessor() {
         return $this->processor;
-    }
+    }*/
 
     /**
      * Get the query grammar instance.

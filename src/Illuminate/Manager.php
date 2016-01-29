@@ -83,7 +83,7 @@ class Manager
             return call_user_func($this->extensions[$driver], $config, $name);
         }
 
-        return $this->factory->make($config, $name);
+        return $this->factory->make($driver, $config);
     }
 
     /**

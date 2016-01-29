@@ -5,7 +5,7 @@ namespace KageNoNeko\OSM;
 use Closure;
 use Exception;
 use Illuminate\Support\Arr;
-use Illuminate\Database\Query\Processors\Processor;
+//use Illuminate\Database\Query\Processors\Processor;
 use GuzzleHttp\Client;
 use KageNoNeko\OSM\Query\OverpassBuilder as QueryBuilder;
 use KageNoNeko\OSM\Query\Grammars\OverpassGrammar as QueryGrammar;
@@ -33,7 +33,7 @@ class OverpassConnection implements ConnectionInterface
      *
      * @var \Illuminate\Database\Query\Processors\Processor
      */
-    protected $postProcessor;
+    //protected $postProcessor;
 
     /**
      * All of the queries run against the connection.
@@ -70,7 +70,7 @@ class OverpassConnection implements ConnectionInterface
         // so we initialize these to their default values while starting.
         $this->useDefaultQueryGrammar();
 
-        $this->useDefaultPostProcessor();
+        //$this->useDefaultPostProcessor();
 
         $this->useDefaultClient();
     }
@@ -108,7 +108,7 @@ class OverpassConnection implements ConnectionInterface
      * @return \Illuminate\Database\Query\Grammars\Grammar
      */
     protected function getDefaultClient() {
-        return new Client();
+        return new Client(['base_uri' => $this->getConfig('interpreter')]);
     }
 
     /**
@@ -116,18 +116,18 @@ class OverpassConnection implements ConnectionInterface
      *
      * @return void
      */
-    public function useDefaultPostProcessor() {
+    /*public function useDefaultPostProcessor() {
         $this->postProcessor = $this->getDefaultPostProcessor();
-    }
+    }*/
 
     /**
      * Get the default post processor instance.
      *
      * @return \Illuminate\Database\Query\Processors\Processor
      */
-    protected function getDefaultPostProcessor() {
+    /*protected function getDefaultPostProcessor() {
         return new Processor;
-    }
+    }*/
 
     /**
      * Begin a fluent query against a osm element.
@@ -156,15 +156,12 @@ class OverpassConnection implements ConnectionInterface
      *
      * @param  string $query
      *
-     * @return array
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function runQuery($query) {
         return $this->run($query, function ($me, $query) {
 
-            // @todo make client http call and parse xml result
-            /*$statement = $this->getClient()->prepare($query);
-
-            return $statement->fetchAll($me->getFetchMode());*/
+            return $this->getClient()->post(null, ['data' => $query]);
         });
     }
 
@@ -287,9 +284,9 @@ class OverpassConnection implements ConnectionInterface
      *
      * @return \Illuminate\Database\Query\Processors\Processor
      */
-    public function getPostProcessor() {
+    /*public function getPostProcessor() {
         return $this->postProcessor;
-    }
+    }*/
 
     /**
      * Set the query post processor used by the connection.
@@ -298,9 +295,9 @@ class OverpassConnection implements ConnectionInterface
      *
      * @return void
      */
-    public function setPostProcessor(Processor $processor) {
+    /*public function setPostProcessor(Processor $processor) {
         $this->postProcessor = $processor;
-    }
+    }*/
 
     /**
      * Get the connection query log.
