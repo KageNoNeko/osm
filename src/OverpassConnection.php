@@ -99,7 +99,7 @@ class OverpassConnection implements ConnectionInterface
      * @return void
      */
     public function useDefaultClient() {
-        $this->queryGrammar = $this->getDefaultClient();
+        $this->client = $this->getDefaultClient();
     }
 
     /**
@@ -147,7 +147,7 @@ class OverpassConnection implements ConnectionInterface
      */
     public function query() {
         return new QueryBuilder(
-            $this, $this->getQueryGrammar(), $this->getPostProcessor()
+            $this, $this->getQueryGrammar()//, $this->getPostProcessor()
         );
     }
 
