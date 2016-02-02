@@ -4,7 +4,6 @@ namespace KageNoNeko\OSM\Illuminate;
 
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use KageNoNeko\OSM\ConnectionFactory;
 use KageNoNeko\OSM\ConnectionInterface;
 
 class Manager
@@ -19,7 +18,7 @@ class Manager
     /**
      * The database connection factory instance.
      *
-     * @var \KageNoNeko\OSM\ConnectionFactory
+     * @var \KageNoNeko\OSM\Illuminate\ConnectionFactory
      */
     protected $factory;
 
@@ -40,8 +39,8 @@ class Manager
     /**
      * Create a new database manager instance.
      *
-     * @param  \Illuminate\Foundation\Application $app
-     * @param  \KageNoNeko\OSM\ConnectionFactory  $factory
+     * @param  \Illuminate\Foundation\Application           $app
+     * @param  \KageNoNeko\OSM\Illuminate\ConnectionFactory $factory
      */
     public function __construct($app, ConnectionFactory $factory) {
         $this->app = $app;
@@ -58,13 +57,13 @@ class Manager
     public function connection($name = null) {
         $name = $name ?: $this->getDefaultConnection();
 
-        if (!isset($this->connections[$name])) {
+        if (!isset($this->connections[ $name ])) {
             $connection = $this->makeConnection($name);
 
-            $this->connections[$name] = $this->prepare($connection);
+            $this->connections[ $name ] = $this->prepare($connection);
         }
 
-        return $this->connections[$name];
+        return $this->connections[ $name ];
     }
 
     /**
@@ -79,8 +78,8 @@ class Manager
 
         $driver = $config['driver'];
 
-        if (isset($this->extensions[$driver])) {
-            return call_user_func($this->extensions[$driver], $config, $name);
+        if (isset($this->extensions[ $driver ])) {
+            return call_user_func($this->extensions[ $driver ], $config, $name);
         }
 
         return $this->factory->make($driver, $config);
@@ -155,7 +154,7 @@ class Manager
      * @return void
      */
     public function extend($name, callable $resolver) {
-        $this->extensions[$name] = $resolver;
+        $this->extensions[ $name ] = $resolver;
     }
 
     /**
