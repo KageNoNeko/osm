@@ -26,7 +26,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * @return void
      */
     public function boot() {
-        $this->publishes([$this->configPath => config_path('osm.php')]);
+        $this->publishes([$this->configPath => config_path('osm.php')], 'config');
     }
 
     /**
