@@ -18,7 +18,12 @@ class ServiceProvider extends IlluminateServiceProvider
      *
      * @var string
      */
-    protected $configPath = __DIR__ . '/../../config/osm.php';
+    protected $configPath;
+
+    public function __construct($app) {
+        parent::__construct($app);
+        $this->configPath = __DIR__ . '/../../config/osm.php';
+    }
 
     /**
      * Bootstrap the application events.
