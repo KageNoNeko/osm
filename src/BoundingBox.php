@@ -129,8 +129,18 @@ class BoundingBox
     }
 
     public function countSlices($latitudeDegrees, $longitudeDegrees, $total = true) {
-        $latitude = ceil(($this->north - $this->south) / (int)$latitudeDegrees);
-        $longitude = ceil(($this->east - $this->west) / (int)$longitudeDegrees);
+        $latitude = ($this->north - $this->south) / (int)$latitudeDegrees;
+        $longitude = ($this->east - $this->west) / (int)$longitudeDegrees;
+
+        // floating point fix
+        if (($this->north - $this->south) % (int)$latitudeDegrees != 0) {
+            $latitude = ceil($latitude);
+        }
+        $latitude = intval($latitude);
+        if (($this->east - $this->west) % (int)$longitudeDegrees != 0) {
+            $longitude = ceil($longitude);
+        }
+        $longitude = intval($longitude);
 
         return ($total ? $latitude * $longitude : compact('latitude', 'longitude'));
     }
