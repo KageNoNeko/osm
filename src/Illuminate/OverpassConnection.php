@@ -26,7 +26,7 @@ class OverpassConnection extends OSMOverpassConnection
      */
     public function logQuery($query, $time = null) {
         if (isset($this->events)) {
-            $this->events->fire('osm.query', [$query, $time, $this->getName()]);
+            $this->events->fire('osm.query', [$query, $time]);
         }
 
         parent::logQuery($query, $time);
