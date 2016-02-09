@@ -285,7 +285,7 @@ class OverpassBuilder
 
         $type = 'Tag';
 
-        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type][] = compact('tag', 'operator', 'value');
 
         return $this;
     }
@@ -299,7 +299,7 @@ class OverpassBuilder
 
         $value = "^$";
 
-        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type][] = compact('tag', 'operator', 'value');
 
         return $this;
     }
@@ -313,7 +313,7 @@ class OverpassBuilder
 
         $value = null;
 
-        $this->wheres[$element][$type] = compact('tag', 'operator', 'value');
+        $this->wheres[$element][$type][] = compact('tag', 'operator', 'value');
 
         return $this;
     }

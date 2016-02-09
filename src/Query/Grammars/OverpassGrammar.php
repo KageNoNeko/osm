@@ -36,13 +36,18 @@ class OverpassGrammar
     }
 
     protected function compileWhereTag(array $where) {
-        $tag = addslashes($where['tag']);
-        $value = addslashes($where['value']);
-        if ($where['operator'] == "exists") {
-            return "[\"{$tag}\"]";
+        $ql = [];
+        foreach ($where as $whereTag) {
+            $tag = addslashes($whereTag['tag']);
+            $value = addslashes($whereTag['value']);
+            if ($whereTag['operator'] == "exists") {
+                $ql[] = "[\"{$tag}\"]";
+            } else {
+                $ql[] = "[\"{$tag}\"{$whereTag['operator']}\"{$value}\"]";
+            }
         }
 
-        return "[\"{$tag}\"{$where['operator']}\"{$value}\"]";
+        return implode('', $ql);
     }
 
     protected function compileWheres(QueryBuilder $query) {
@@ -55,7 +60,7 @@ class OverpassGrammar
         foreach ($wheres as $element => $eWheres) {
             $eQl = [];
             foreach ($eWheres as $type => $where) {
-                if (!is_null($where)) {
+                if (!empty($where)) {
                     $method = "compileWhere{$type}";
 
                     $eQl[] = $this->$method($where);
