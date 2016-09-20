@@ -4,7 +4,6 @@ namespace KageNoNeko\OSM;
 
 use Closure;
 use Exception;
-use Illuminate\Support\Arr;
 //use Illuminate\Database\Query\Processors\Processor;
 use GuzzleHttp\Client;
 use KageNoNeko\OSM\Query\OverpassBuilder as QueryBuilder;
@@ -251,12 +250,18 @@ class OverpassConnection implements ConnectionInterface
     /**
      * Get an option from the configuration options.
      *
-     * @param  string $option
+     * @param  string $key
+     * @param  mixed  $default
      *
      * @return mixed
      */
-    public function getConfig($option) {
-        return Arr::get($this->config, $option);
+    public function getConfig($key, $default = null) {
+
+        if (isset($this->config[ $key ])) {
+            return $this->config[ $key ];
+        }
+
+        return $default instanceof Closure ? $default() : $default;
     }
 
     /**
