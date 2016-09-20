@@ -3,6 +3,7 @@
 namespace KageNoNeko\OSM\Illuminate;
 
 use Closure;
+use Illuminate\Support\Arr;
 use Illuminate\Contracts\Events\Dispatcher;
 use KageNoNeko\OSM\OverpassConnection as OSMOverpassConnection;
 
@@ -30,6 +31,18 @@ class OverpassConnection extends OSMOverpassConnection
         }
 
         parent::logQuery($query, $time);
+    }
+
+    /**
+     * Get an option from the configuration options using "dot" notation.
+     *
+     * @param  string $key
+     * @param  mixed  $default
+     *
+     * @return mixed
+     */
+    public function getConfig($key, $default = null) {
+        return Arr::get($this->config, $key, $default);
     }
 
     /**
