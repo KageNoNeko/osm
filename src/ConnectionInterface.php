@@ -26,7 +26,7 @@ interface ConnectionInterface
      * Run a select statement against the source.
      *
      * @param  string  $query
-     * @return array
+     * @return mixed
      */
     public function runQuery($query);
 }
