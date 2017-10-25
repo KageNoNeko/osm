@@ -1,4 +1,5 @@
 <?php
+
 namespace KageNoNeko\OSM;
 
 /**
@@ -50,6 +51,7 @@ class BoundingBox
      * @return void
      */
     protected function flushSlices() {
+
         $this->slices = null;
     }
 
@@ -68,33 +70,44 @@ class BoundingBox
      * @return \KageNoNeko\OSM\BoundingBox[]|null
      */
     protected function splitByDegrees($latitudeDegrees, $longitudeDegrees) {
+
         $latitudeDegrees = (int)$latitudeDegrees;
         $longitudeDegrees = (int)$longitudeDegrees;
 
         $counts = $this->countSlices($latitudeDegrees, $longitudeDegrees, false);
-        if (!($counts['latitude'] * $counts['longitude'] > 1)) {
+
+        if (!($counts[ 'latitude' ] * $counts[ 'longitude' ] > 1)) {
+
             return null;
         }
 
         $slices = [];
         $north = $this->north;
-        for ($i = 0; $i < $counts['latitude']; $i++) {
+
+        for ($i = 0; $i < $counts[ 'latitude' ]; $i++) {
+
             $south = $north - $latitudeDegrees;
+
             if ($south < $this->south) {
+
                 $south = $this->south;
             }
+
             $west = $this->west;
 
-            for ($j = 0; $j < $counts['longitude']; $j++) {
+            for ($j = 0; $j < $counts[ 'longitude' ]; $j++) {
+
                 $east = $west + $longitudeDegrees;
+
                 if ($east > $this->east) {
+
                     $east = $this->east;
                 }
 
                 $slices[] = new BoundingBox($south, $west, $north, $east);
-
                 $west = $east;
             }
+
             $north = $south;
         }
 
@@ -102,15 +115,20 @@ class BoundingBox
     }
 
     public function __set($key, $value) {
+
         if (!in_array($key, ['south', 'west', 'north', 'east'])) {
+
             throw new \RuntimeException("Property '{$key}' doesn't exists and cannot be set.");
         }
+
         $this->{$key} = floatval($value);
         $this->flushSlices();
     }
 
     public function __get($key) {
+
         if (!in_array($key, ['south', 'west', 'north', 'east'])) {
+
             throw new \RuntimeException("Property '{$key}' doesn't exists and cannot be get.");
         }
 
@@ -118,26 +136,46 @@ class BoundingBox
     }
 
     public function __toString() {
+
         return "{$this->south},{$this->west},{$this->north},{$this->east}";
     }
 
+    /**
+     *
+     * @param float $south
+     * @param float $west
+     * @param float $north
+     * @param float $east
+     */
     public function __construct($south, $west, $north, $east) {
+
         $this->south = $south;
         $this->west = $west;
         $this->north = $north;
         $this->east = $east;
     }
 
+    /**
+     * @param int  $latitudeDegrees
+     * @param int  $longitudeDegrees
+     * @param bool $total
+     *
+     * @return array|int
+     */
     public function countSlices($latitudeDegrees, $longitudeDegrees, $total = true) {
+
         $latitude = ($this->north - $this->south) / (int)$latitudeDegrees;
         $longitude = ($this->east - $this->west) / (int)$longitudeDegrees;
 
         // floating point fix
         if (($this->north - $this->south) % (int)$latitudeDegrees != 0) {
+
             $latitude = ceil($latitude);
         }
         $latitude = intval($latitude);
+
         if (($this->east - $this->west) % (int)$longitudeDegrees != 0) {
+
             $longitude = ceil($longitude);
         }
         $longitude = intval($longitude);
@@ -145,12 +183,27 @@ class BoundingBox
         return ($total ? $latitude * $longitude : compact('latitude', 'longitude'));
     }
 
+    /**
+     * @param int $latitudeDegrees
+     * @param int $longitudeDegrees
+     *
+     * @return bool
+     */
     public function canSplit($latitudeDegrees, $longitudeDegrees) {
+
         return $this->countSlices($latitudeDegrees, $longitudeDegrees, true) > 1;
     }
 
+    /**
+     * @param int $latitudeDegrees
+     * @param int $longitudeDegrees
+     *
+     * @return \KageNoNeko\OSM\BoundingBox[]|null
+     */
     public function slices($latitudeDegrees, $longitudeDegrees) {
+
         if (is_null($this->slices)) {
+
             $this->slices = $this->splitByDegrees($latitudeDegrees, $longitudeDegrees);
         }
 
